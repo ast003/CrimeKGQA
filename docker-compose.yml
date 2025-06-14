@@ -1,0 +1,39 @@
+services:
+  neo4j:
+    image: neo4j:3.5 # or neo4j:3.5.36 if your dump is for 3.5
+    container_name: crimekgqa-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - ./data:/data
+      - neo4j_data:/data/databases
+    environment:
+      NEO4J_AUTH: neo4j/test
+      NEO4JLABS_PLUGINS: '["apoc"]'
+
+  ollama:
+    image: ollama/ollama
+    container_name: crimekgqa-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  app:
+    build: .
+    container_name: crimekgqa-app
+    ports:
+      - "8501:8501"
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=test
+      - OLLAMA_BASE_URL=http://ollama:11434
+    depends_on:
+      - neo4j
+      - ollama
+
+volumes:
+  neo4j_data:
+  ollama_data:
