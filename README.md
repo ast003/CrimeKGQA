@@ -119,7 +119,7 @@ This project is licensed under the **MIT License**.
 
 ## 🙏 Acknowledgements
 
-* Based on the [CrimeKGQA](https://arxiv.org/abs/2305.12292) research paper.
+* Based on the [CrimeKGQA](https://www.researchgate.net/publication/384762565_CrimeKGQA_A_Crime_Investigation_System_Based_on_Retrieval-Augmented_Generation_and_Knowledge_Graphs) research paper.
 * Thanks to the Neo4j, Streamlit, and open-source Python communities for making this possible.
 
 ---
