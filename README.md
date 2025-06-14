@@ -7,7 +7,7 @@
 ## 🚀 Features
 
 * **📚 Knowledge Graph Backend:** Uses Neo4j to store and query a large-scale crime knowledge graph following the POLE model (Person, Object, Location, Event).
-* **🔍 Natural Language Question Answering:** Maps user questions to Cypher queries using templates (can be extended to LLMs).
+* **🔍 Natural Language Question Answering:** Maps user questions to Cypher queries using templates.
 * **🌐 Interactive Visualization:** Displays graph-based answers with Pyvis and NetworkX.
 * **💬 Modern UI:** Intuitive Streamlit chat interface.
 * **🐳 Containerized Deployment:** Easily run all components via Docker Compose.
