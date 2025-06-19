@@ -2,57 +2,86 @@ import os
 import streamlit as st
 from kg_query import CrimeInvestigationChain
 
-st.set_page_config(page_title="CrimeKGQA", page_icon="🔍", layout="wide")
-st.title("🔍 CrimeKGQA: Crime Investigation Assistant")
+# Configure Page
+st.set_page_config(
+    page_title="CrimeKGQA - Investigation Assistant",
+    page_icon="🕵️",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
-with st.sidebar:
-    st.header("System Info")
-    st.markdown("**Neo4j URI:** " + os.getenv("NEO4J_URI", "bolt://neo4j:7687"))
-    st.markdown("**User:** " + os.getenv("NEO4J_USER", "neo4j"))
-    st.markdown("**Sample queries:**")
-    st.markdown("- Identify people involved in multiple crimes and find their connections")
-    st.markdown("- Which geographical areas have the highest crime rates?")
-    st.markdown("- Show all associates of Amy")
+# Custom CSS
+st.markdown("""
+<style>
+    [data-testid="stSidebar"] {
+        background: #2e3b4e !important;
+    }
+    .stChatInput textarea {
+        background-color: #1a1a1a !important;
+        color: white !important;
+    }
+</style>
+""", unsafe_allow_html=True)
 
+# Initialize System
 @st.cache_resource
-def init_chain():
+def init_system():
     return CrimeInvestigationChain(
         neo4j_uri=os.getenv("NEO4J_URI", "bolt://neo4j:7687"),
         neo4j_user=os.getenv("NEO4J_USER", "neo4j"),
         neo4j_password=os.getenv("NEO4J_PASSWORD", "test")
     )
 
-chain = init_chain()
+# Sidebar Controls
+with st.sidebar:
+    st.title("🔧 System Controls")
+    st.markdown("**Connected Database:**")
+    st.code(f"{os.getenv('NEO4J_URI', 'bolt://neo4j:7687')}")
+    st.markdown("---")
+    st.markdown("### Sample Queries")
+    st.button("Show Multi-Crime Suspects", 
+              help="Find suspects involved in multiple crimes")
+    st.button("Analyze Crime Hotspots",
+              help="Identify high-crime geographical areas")
+    st.button("Visualize Crime Networks",
+              help="Show network of suspects and relationships")
 
+# Main Interface
+st.title("🕵️ CrimeKGQA - Intelligent Investigation Assistant")
+st.markdown("""
+**Welcome to the Crime Investigation Assistant**  
+Ask natural language questions about criminal networks, patterns, and relationships.
+""")
+
+# Chat History
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        if message["role"] == "user":
-            st.markdown(message["content"])
-        else:
-            st.markdown(message["content"]["answer"])
-            if message["content"].get("graph_html"):
-                st.components.v1.html(message["content"]["graph_html"], height=600)
-            if message["content"].get("cypher_query"):
-                with st.expander("Generated Cypher Query"):
-                    st.code(message["content"]["cypher_query"], language="cypher")
+# Display History
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"]["answer"])
+        if msg["content"]["graph_html"]:
+            st.components.v1.html(msg["content"]["graph_html"], height=600)
 
-if prompt := st.chat_input("Ask a crime investigation question..."):
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-    with st.chat_message("assistant"):
-        with st.spinner("Processing..."):
-            response = chain.rag_answer(prompt)
-            st.markdown(response["answer"])
-            if response.get("graph_html"):
-                st.components.v1.html(response["graph_html"], height=600)
-            if response.get("cypher_query"):
-                with st.expander("Generated Cypher Query"):
-                    st.code(response["cypher_query"], language="cypher")
-            st.session_state.messages.append({"role": "assistant", "content": response})
+# Processing Pipeline
+if prompt := st.chat_input("Enter investigation question..."):
+    # Add user message
+    st.session_state.messages.append({
+        "role": "user",
+        "content": {"answer": prompt, "graph_html": "", "cypher": ""}
+    })
+    
+    # Generate response
+    with st.spinner("🔍 Analyzing criminal patterns..."):
+        response = init_system().rag_answer(prompt)
+        
+        # Add assistant response
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": response
+        })
+        
+        # Rerender
+        st.rerun()
 
-st.markdown("---")
-st.markdown("**CrimeKGQA** - Powered by Neo4j, Python, and Streamlit.")
